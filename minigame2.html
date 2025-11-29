@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Nap: Light the Tree - Karácsonyfa Fényei</title>
+    <style>
+        /* [ HÓESÉS STÍLUSOK ÉS ANIMÁCIÓK ] */
+        .snowflakes { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden; 
+        }
+        .snowflake { 
+            --size: 0.5vw; width: var(--size); height: var(--size); background: white; border-radius: 50%; position: absolute; top: -10vh; animation: fall linear infinite; 
+        }
+        @keyframes fall { 
+            to { transform: translateY(105vh); } 
+        }
+        .snowflake:nth-child(even) { --size: 0.2vw; animation-duration: 15s; animation-delay: 0s; }
+        .snowflake:nth-child(3n) { --size: 0.7vw; animation-duration: 20s; animation-delay: 5s; }
+        .snowflake:nth-child(5n) { --size: 0.4vw; animation-duration: 12s; animation-delay: 3s; }
+
+        /* [ JÁTÉK STÍLUSOK - TÉLI TÉMA ] */
+        body { 
+            font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #e6f7ff; padding: 20px; 
+        }
+        
+        /* MÓDOSÍTOTT STÍLUS: Csak a BOX-SHADOW (körvonal) világít, a háttérszín nem változik! */
+        .lit-tile {
+            /*background-color: #584102 !important; <-- EZT TÖRÖLTÜK */
+            box-shadow: 0 0 10px 3px rgba(255, 255, 0, 0.8), inset 0 0 5px rgba(255, 255, 0, 0.5); /* Körvonal hatás */
+        }
+        
+        /* A tartalomnak a hó felett kell lennie, ezért z-index: 10 */
+        h1, .game-info, .light-tree-container, #lightTreeMessage, #nextLevelButton {
+            z-index: 10;
+        }
+
+        h1 { 
+            color: #1e8449; 
+        }
+        .game-info { 
+            margin-bottom: 20px; font-size: 1.1em; color: #333; text-align: center;
+        }
+
+        /* [ JÁTÉK STÍLUSOK: DINAMIKUS GRID ] */
+        .light-tree-container { 
+            display: grid; gap: 1px; margin: 20px auto; border: 5px solid #95a5a6; background-color: #333; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .wire-tile { 
+            width: 80px; height: 80px; background-color: #555; border: 1px solid #777; cursor: pointer; position: relative;
+        }
+        
+        /* START és END pontok */
+        .start, .end { 
+            display: flex; justify-content: center; align-items: center; font-size: 0.8em; font-weight: bold; cursor: default !important;
+        }
+        .start { background-color: #1abc9c !important; color: white; } 
+        .end { background-color: #3498db !important; color: white; } 
+
+        /* Vezeték grafika */
+        .wire-graphic {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.2s;
+            transform-origin: center center;
+        }
+        
+        /* Alap vezeték szegmens */
+        .wire-segment {
+            position: absolute; background-color: #888; border-radius: 5px;
+        }
+
+        /* [ POZICIONÁLÁS A SEGMENTEKNEK ] */
+        .wire-segment[data-dir="0"] { top: 0; left: 30%; width: 40%; height: 50%; } 
+        .wire-segment[data-dir="1"] { top: 30%; right: 0; width: 50%; height: 40%; } 
+        .wire-segment[data-dir="2"] { bottom: 0; left: 30%; width: 40%; height: 50%; } 
+        .wire-segment[data-dir="3"] { top: 30%; left: 0; width: 50%; height: 40%; } 
+        .wire-segment[data-dir="4"] { top: 30%; left: 30%; width: 40%; height: 40%; } 
+        
+        /* [ A VILÁGÍTÓ SZÍN ] */
+        .lit-segment {
+            background-color: #f1c40f !important; 
+            box-shadow: 0 0 8px #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="snowflakes" id="snowContainer"></div>
+
+    <h1>🎄 Light the Tree – Karácsonyfa Fényei</h1>
+    <div class="game-info" id="gameInfo">Kösd össze a Zöld START-ot az ÉGŐ(k)kel!</div>
+
+    <div class="light-tree-container" id="lightTreeGame"></div>
+    <p id="lightTreeMessage" style="margin-top: 15px; font-size: 1.5em; color: #c0392b;">Helytelen kapcsolás!</p>
+    
+    <button id="nextLevelButton" style="display: none; padding: 10px 20px; font-size: 1.2em; background-color: #f1c40f; color: #333; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">Következő Szint</button>
+
+    <script src="minigame2.js"></script>
+
+    <script>
+        // Hópelyhek Generálása (az index.html-ből vett kód)
+        const snowContainer = document.getElementById('snowContainer');
+        const numberOfSnowflakes = 100;
+        for (let i = 0; i < numberOfSnowflakes; i++) {
+            const flake = document.createElement('div');
+            flake.classList.add('snowflake');
+            const x = Math.random() * 100;
+            const delay = Math.random() * 20;
+            const duration = Math.random() * 10 + 10;
+            const size = Math.random() * 0.5 + 0.2; 
+            flake.style.left = `${x}vw`;
+            flake.style.animationDelay = `${delay}s`;
+            flake.style.animationDuration = `${duration}s`;
+            flake.style.setProperty('--size', `${size}vw`);
+            snowContainer.appendChild(flake);
+        }
+    </script>
+
+</body>
+</html>

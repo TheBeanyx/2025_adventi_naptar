@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minijáték 1: Mikulás Ugrás</title>
+    <style>
+        /* [ HÓESÉS STÍLUSOK (A kerethez igazítva) ] */
+        .snowflakes { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 9; 
+            overflow: hidden; 
+        }
+        
+        /* 💡 FRISSÍTVE: A fall animáció most már %-ban van definiálva és minden hópehely ezt használja */
+        @keyframes fall { 
+            to { transform: translateY(105%); } 
+        }
+
+        .snowflake { 
+            /* A méret maradhat VW-ban, hogy ne legyen túl kicsi a hópelyhek */
+            --size: 0.5vw; 
+            width: var(--size); 
+            height: var(--size); 
+            background: white; 
+            border-radius: 50%; 
+            position: absolute; 
+            top: -10%; 
+            animation: fall linear infinite; 
+            /* 💡 Eltávolítva: a :nth-child felülírások, hogy minden hópelyhen ez fusson */
+        }
+        
+        /* A :nth-child-ban csak a sebességet és késleltetést állítjuk, nem írjuk felül az animáció nevét! */
+        .snowflake:nth-child(even) { --size: 0.2vw; animation-duration: 15s; animation-delay: 0s; }
+        .snowflake:nth-child(3n) { --size: 0.7vw; animation-duration: 20s; animation-delay: 5s; }
+        .snowflake:nth-child(5n) { --size: 0.4vw; animation-duration: 12s; animation-delay: 3s; }
+
+
+        /* [ JÁTÉK ALAP STÍLUSOK ] */
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background-color: #ADD8E6; 
+            font-family: Arial, sans-serif;
+            overflow: hidden; 
+        }
+
+        #game-container {
+            width: 800px;
+            height: 400px;
+            border: 5px solid #1e8449; 
+            position: relative;
+            overflow: hidden; /* Ez biztosítja a kivágást! */
+            background-color: #ADD8E6; 
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        
+        /* 💡 Fehér Hóréteg Talaj 💡 */
+        #game-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px; 
+            background-color: #fffafa; 
+            z-index: 5;
+            box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
+            display: block; 
+        }
+
+        /* [ JÁTÉK ELEMEK - EMOJIKKAL ] */
+        #santa {
+            width: 60px;
+            height: 80px;
+            position: absolute;
+            bottom: 0; 
+            left: 50px;
+            font-size: 50px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; 
+            z-index: 20;
+            transition: transform 0.1s ease-out; 
+        }
+        
+        #santa span {
+            display: block;
+            line-height: 1; 
+        }
+
+        .obstacle {
+            width: 40px;
+            height: 50px; 
+            position: absolute;
+            bottom: 0;
+            right: -40px; 
+            font-size: 40px; 
+            text-align: center;
+            line-height: 1;
+            z-index: 15;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            color: #c0392b; 
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 30;
+        }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            text-align: center;
+            z-index: 100;
+            display: none; 
+        }
+
+        #restartButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 0.5em;
+            cursor: pointer;
+            background-color: #1e8449;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="game-container">
+        <div class="snowflakes" id="snowContainer"></div> 
+        
+        <div id="santa"><span>🎅</span></div>
+        <div id="score">Pontszám: 0</div>
+        
+        <div id="gameOverScreen">
+            Játék Vége! 😞
+            <div id="finalScore">Pontszámod: 0</div>
+            <button id="restartButton">🔄 Újra</button>
+        </div>
+    </div>
+
+    <script>
+        // JÁTÉK VÁLTOZÓK
+        const gameContainer = document.getElementById('game-container');
+        const santa = document.getElementById('santa');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScore = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+        
+        // 🚀 NAGY UGRÁS ÉS GRAVITÁCIÓ BEÁLLÍTÁSA 
+        const JUMP_VELOCITY = 20; 
+        const GRAVITY = 1.5;     
+        
+        // Vízszintes sebesség változók
+        const NORMAL_OBSTACLE_SPEED = 5; 
+        const FAST_OBSTACLE_SPEED = 10; 
+
+        let currentObstacleSpeed = NORMAL_OBSTACLE_SPEED; 
+        const OBSTACLE_SPAWN_TIME = 2000; 
+        const GROUND_Y = 50; 
+
+        let santaY = GROUND_Y;
+        let velocityY = 0;
+        let isJumping = false;
+        let score = 0;
+        let isGameOver = false;
+        let gameLoopInterval;
+        let obstacleSpawnInterval;
+        let obstacles = [];
+
+        // --- MIKULÁS UGRÁS LOGIKA ---
+        function jump() {
+            if (isJumping) return;
+            isJumping = true;
+            velocityY = JUMP_VELOCITY;
+            
+            currentObstacleSpeed = FAST_OBSTACLE_SPEED;
+        }
+
+        // --- AKADÁLYOK KEZELÉSE ---
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.innerHTML = '🎄'; 
+            
+            gameContainer.appendChild(obstacle);
+            
+            let obstacleX = gameContainer.clientWidth;
+            obstacle.style.right = `-${obstacle.clientWidth}px`; 
+
+            obstacle.style.bottom = `${GROUND_Y}px`;
+
+            obstacles.push({ element: obstacle, x: obstacleX, width: 40, height: 50 });
+        }
+
+        function updateObstacles() {
+            obstacles = obstacles.filter(obs => {
+                obs.x -= currentObstacleSpeed; 
+                obs.element.style.right = `${gameContainer.clientWidth - obs.x}px`;
+                
+                const santaX = 50;
+                const santaWidth = 60;
+                const santaHeight = 80;
+
+                // Ütközés ellenőrzése
+                if (
+                    (santaX < obs.x + obs.width && santaX + santaWidth > obs.x) &&
+                    (santaY < obs.height + GROUND_Y) 
+                ) {
+                    gameOver();
+                    return false; 
+                }
+
+                // Eltávolítás, ha elhagyta a képernyőt
+                if (obs.x < -obs.width) {
+                    obs.element.remove();
+                    score++;
+                    scoreElement.textContent = `Pontszám: ${score}`;
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // --- JÁTÉK CIKLUS ---
+        function gameLoop() {
+            if (isGameOver) return;
+
+            // 1. Mikulás pozíció frissítése
+            velocityY -= GRAVITY;
+            santaY += velocityY;
+            
+            // Földre érkezés ellenőrzése (GROUND_Y = 50)
+            if (santaY <= GROUND_Y) {
+                santaY = GROUND_Y;
+                velocityY = 0;
+                
+                if (isJumping) {
+                    isJumping = false;
+                    currentObstacleSpeed = NORMAL_OBSTACLE_SPEED;
+                }
+            }
+
+            // CSS frissítése
+            santa.style.bottom = `${santaY}px`;
+
+            // 2. Akadályok frissítése
+            updateObstacles();
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameLoopInterval);
+            clearInterval(obstacleSpawnInterval);
+            
+            finalScore.textContent = `Pontszámod: ${score}`;
+            gameOverScreen.style.display = 'flex';
+            currentObstacleSpeed = NORMAL_OBSTACLE_SPEED;
+        }
+        
+        // --- KEZDETI BEÁLLÍTÁSOK ---
+        function initializeGame() {
+            isGameOver = false;
+            isJumping = false;
+            score = 0;
+            santaY = GROUND_Y;
+            velocityY = 0;
+            scoreElement.textContent = `Pontszám: 0`;
+            gameOverScreen.style.display = 'none';
+            currentObstacleSpeed = NORMAL_OBSTACLE_SPEED; 
+
+            obstacles.forEach(obs => obs.element.remove());
+            obstacles = [];
+
+            gameLoopInterval = setInterval(gameLoop, 1000 / 60); 
+            obstacleSpawnInterval = setInterval(createObstacle, OBSTACLE_SPAWN_TIME);
+        }
+
+        // --- ESEMÉNYKEZELŐK ---
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' && !isGameOver) {
+                jump();
+            }
+        });
+
+        restartButton.addEventListener('click', initializeGame);
+        
+        // --- HÓESÉS GENERÁLÁS ---
+        const snowContainer = document.getElementById('snowContainer');
+        const numberOfSnowflakes = 100;
+        for (let i = 0; i < numberOfSnowflakes; i++) {
+            const flake = document.createElement('div');
+            flake.classList.add('snowflake');
+            const x = Math.random() * 100;
+            const delay = Math.random() * 20;
+            const duration = Math.random() * 10 + 10;
+            const size = Math.random() * 0.5 + 0.2; 
+            
+            flake.style.left = `${x}%`; 
+            flake.style.animationDelay = `${delay}s`;
+            flake.style.animationDuration = `${duration}s`;
+            flake.style.setProperty('--size', `${size}vw`);
+            if (snowContainer) {
+                snowContainer.appendChild(flake);
+            }
+        }
+
+        // Játék indítása az oldal betöltésekor
+        initializeGame();
+    </script>
+</body>
+</html>

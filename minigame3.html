@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. Nap: Build a Snowman</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f0f8ff; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .game-info { margin-bottom: 20px; font-size: 1.1em; color: #333; }
+        
+        /* Játék stílusok */
+        .snowman-container { 
+            width: 90%; 
+            max-width: 600px; 
+            height: 450px; 
+            background: linear-gradient(to bottom, #add8e6 70%, #fff 70%); /* Ég és hó */
+            border: 5px solid #2c3e50;
+            position: relative; 
+            margin: 20px auto;
+        }
+        .snowman-part { 
+            position: absolute; 
+            background-color: white; 
+            border: 2px solid #333; 
+            cursor: grab; 
+            border-radius: 50%; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: box-shadow 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .snowman-part:hover {
+            box-shadow: 0 0 15px #f1c40f;
+        }
+        
+        #s-base { width: 150px; height: 150px; left: 50px; top: 250px; }
+        #s-mid { width: 100px; height: 100px; left: 250px; top: 280px; }
+        #s-head { width: 70px; height: 70px; left: 450px; top: 290px; }
+        
+        #snowmanMessage {
+            position: absolute; 
+            top: 10px; 
+            width: 100%; 
+            font-weight: bold; 
+            color: #1e8449;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⛄ Build a Snowman – Hóember Építő</h1>
+    <div class="game-info">Húzd és ejtsd a hógolyókat a helyükre (alap, középső, fej)!</div>
+
+    <div class="snowman-container" id="snowmanGame">
+        <p id="snowmanMessage">Készíts hóembert!</p>
+        <div id="s-base" class="snowman-part">Alap (1)</div>
+        <div id="s-mid" class="snowman-part">Közép (2)</div>
+        <div id="s-head" class="snowman-part">Fej (3)</div>
+    </div>
+
+    <script>
+        const container = document.getElementById('snowmanGame');
+        const parts = document.querySelectorAll('.snowman-part');
+        const message = document.getElementById('snowmanMessage');
+        
+        let activePart = null;
+        let initialX, initialY, xOffset = 0, yOffset = 0;
+
+        parts.forEach(part => {
+            part.addEventListener('mousedown', dragStart);
+            part.addEventListener('mouseup', dragEnd);
+            part.addEventListener('mousemove', drag);
+        });
+        
+        // Drag Start
+        function dragStart(e) {
+            e.preventDefault();
+            activePart = e.target;
+            activePart.style.zIndex = 10;
+            
+            // Az elem pozíciójának (left/top) kiszámítása
+            initialX = e.clientX - activePart.offsetLeft;
+            initialY = e.clientY - activePart.offsetTop;
+            
+            activePart.style.cursor = 'grabbing';
+        }
+
+        // Drag End
+        function dragEnd(e) {
+            if (!activePart) return;
+            activePart.style.zIndex = 1;
+            activePart.style.cursor = 'grab';
+            activePart = null;
+            checkWin();
+        }
+
+        // Drag
+        function drag(e) {
+            if (!activePart) return;
+            e.preventDefault();
+
+            let newX = e.clientX - initialX;
+            let newY = e.clientY - initialY;
+            
+            // Korlátozás a játéktérre
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + activePart.clientWidth > container.clientWidth) newX = container.clientWidth - activePart.clientWidth;
+            if (newY + activePart.clientHeight > container.clientHeight) newY = container.clientHeight - activePart.clientHeight;
+            
+            activePart.style.left = newX + 'px';
+            activePart.style.top = newY + 'px';
+        }
+
+        // Győzelem ellenőrzése (egyszerűsítve: ha az elemek közel vannak egymáshoz)
+        function checkWin() {
+            const base = document.getElementById('s-base');
+            const mid = document.getElementById('s-mid');
+            const head = document.getElementById('s-head');
+            
+            // Középpontok meghatározása (egyszerűsített ellenőrzés)
+            const getCenter = (el) => ({
+                x: el.offsetLeft + el.clientWidth / 2,
+                y: el.offsetTop + el.clientHeight / 2,
+            });
+            
+            const cBase = getCenter(base);
+            const cMid = getCenter(mid);
+            const cHead = getCenter(head);
+
+            // A fej a középsőn van? (Y irányban közel, X irányban közel)
+            const headOnMid = Math.abs(cHead.x - cMid.x) < 20 && cHead.y > cMid.y - 50 && cHead.y < cMid.y + 50;
+            
+            // A középső az alapon van?
+            const midOnBase = Math.abs(cMid.x - cBase.x) < 20 && cMid.y > cBase.y - 80 && cMid.y < cBase.y + 80;
+            
+            // Ellenőrzés, hogy a sorrend is megfelelő (Alap alul, Fej felül)
+            const correctStacking = cBase.y < cMid.y && cMid.y < cHead.y;
+
+            if (headOnMid && midOnBase && correctStacking) {
+                message.textContent = "Gratulálok! Tökéletes Hóember! ☃️";
+                message.style.color = "#1e8449";
+            } else {
+                message.textContent = "Készíts hóembert!";
+                message.style.color = "#c0392b";
+            }
+        }
+    </script>
+</body>
+</html>

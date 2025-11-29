@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minijáték 4: Ajándékgyár</title>
+    <style>
+        /* [ ÁLTALÁNOS STÍLUSOK ] */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #ADD8E6; 
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        
+        /* [ JÁTÉK KONFIGURÁCIÓ ] */
+        #game-container {
+            width: 850px;
+            height: 400px;
+            border: 5px solid #a83232; 
+            background-color: #fffafa; 
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: none; 
+        }
+
+        /* [ FUTÓSZALAG STÍLUS ] */
+        #conveyor-belt {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background-color: #333; 
+            border-top: 10px solid #555;
+            z-index: 10;
+        }
+
+        /* [ AJÁNDÉK DOBOZ STÍLUS (KÉP KONTÉNER) ] */
+        .gift-box {
+            position: absolute;
+            bottom: 5px; 
+            width: 100px; 
+            height: 100px; 
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 15;
+            border: 3px solid transparent; 
+            background: none;
+        }
+
+        .gift-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            user-select: none;
+            pointer-events: none; 
+        }
+
+        /* [ LEBEGŐ AJÁNDÉK ] */
+        .gift-inner {
+            position: absolute;
+            top: -15px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            user-select: none;
+        }
+        
+        .gift-inner img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        /* [ KIJELÖLÉS VISSZAJELZÉS ] */
+        .gift-box.selected {
+            border-color: #ffcc00; 
+        }
+        
+        /* A KÉSZ ajándékot lecseréljük egy emojira a logikában, de a CSS-t megtartjuk */
+        .gift-box.finished {
+            border-color: #1e8449; 
+        }
+
+        /* [ TUTORIAL KÉP STÍLUS ] */
+        #tutorial-content {
+            width: 90%;
+            max-width: 700px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        
+        /* [ VEZÉRLÉS, PONT, EREDMÉNY STÍLUSOK ] */
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .control-button {
+            padding: 10px 15px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: 2px solid #a83232;
+            background-color: #fff;
+            border-radius: 5px;
+            transition: background-color 0.1s;
+        }
+
+        .overlay button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #1e8449;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="tutorial-screen" class="overlay">
+        <h2>🎁 Ajándékgyár – Kézikönyv 🎁</h2>
+        <img id="tutorial-content" src="grafikak/tutorial.png" alt="Gyártási lépések tutorial" />
+        <p style="margin-top: 20px;">Kattints az ajándékra, majd a megfelelő gombra! Sok sikert!</p>
+        <button id="startButton">START (Kezdjük a munkát!)</button>
+    </div>
+
+    <div id="game-container">
+        <div id="score-time">Pont: 0 | Idő: 60s</div>
+
+        <div id="controls">
+            <button class="control-button" data-action="festes">📦 FESTÉS</button>
+            <button class="control-button" data-action="toltes">🎨 TÖLTÉS</button>
+            <button class="control-button" data-action="lezaras">🔒 LEZÁRÁS</button>
+            <button class="control-button" data-action="csomagolas">🎀 CSOMAGOLÁS ÉS MASNI</button>
+            <button class="control-button" data-action="kuldes">✉️ KÜLDÉS</button>
+        </div>
+
+        <div id="conveyor-belt"></div>
+
+        <div id="result-screen" class="overlay" style="display: none;">
+            <h2>Műszak Vége!</h2>
+            <p>Összesen elkészített ajándék: <span id="final-score">0</span></p>
+            <button id="restartButton">Újra</button>
+        </div>
+    </div>
+
+    <script>
+        const tutorialScreen = document.getElementById('tutorial-screen');
+        const startButton = document.getElementById('startButton');
+        const gameContainer = document.getElementById('game-container');
+        const controls = document.getElementById('controls');
+        const conveyorBelt = document.getElementById('conveyor-belt');
+        const scoreTime = document.getElementById('score-time');
+        const resultScreen = document.getElementById('result-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restartButton');
+
+        // [ KÉPEK ÉS ÁLLAPOTOK ]
+        const GIFT_IMAGES = ['ajandek1.png', 'ajandek2.png', 'ajandek3.png', 'ajandek4.png'];
+        const IMAGE_PATHS = {
+            'alap': 'grafikak/doboz_nyitva.png',
+            'festett': 'grafikak/doboz_festve.png', // ÚJ KÉP: Festett nyitott doboz
+            'lezart': 'grafikak/doboz_lezarva.png', // ÚJ KÉP: Lezárt doboz
+            'csomagolt_masnis': 'grafikak/doboz_festve_masnival.png' // Kért masnis kép
+        };
+
+        // [ JÁTÉK ÁLLAPOT ]
+        let score = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let giftSpawnInterval;
+        let selectedGift = null; 
+
+        // Ajándékgyártási lépések (Action nevek módosítva!)
+        const steps = [
+            { action: 'festes', nextStep: 2 },      // 1. FESTÉS
+            { action: 'toltes', nextStep: 3 },      // 2. TÖLTÉS (Csomagolás)
+            { action: 'lezaras', nextStep: 4 },     // 3. LEZÁRÁS
+            { action: 'csomagolas', nextStep: 5 },  // 4. CSOMAGOLÁS ÉS MASNI
+            { action: 'kuldes', nextStep: 6 }       // 5. KÜLDÉS (Kész)
+        ];
+
+        // [ FUTÓSZALAG LOGIKA ]
+        const BELT_SPEED = 0.5;
+
+        function moveGifts() {
+            const gifts = conveyorBelt.querySelectorAll('.gift-box');
+            gifts.forEach(gift => {
+                let currentLeft = parseFloat(gift.style.left || 0);
+                let newLeft = currentLeft - BELT_SPEED;
+                
+                gift.style.left = `${newLeft}px`;
+
+                // Ajándék leesése (hiba) - Csak akkor büntetünk, ha még nincs KÜLDVE (step 6)
+                if (newLeft < -100) {
+                    // Ha a doboz KÜLDÉS (step 6) után hagyja el a képernyőt, az OK.
+                    if (parseInt(gift.dataset.step) < 6) {
+                         score = Math.max(0, score - 5);
+                         updateScoreTime();
+                    }
+                    gift.remove();
+                    if (selectedGift === gift) {
+                        selectedGift = null;
+                    }
+                }
+            });
+            
+            // KÜLDÉS utáni boldog emoji mozgatása (a doboz helyett)
+            const sentEmojis = conveyorBelt.querySelectorAll('.sent-emoji');
+            sentEmojis.forEach(emoji => {
+                let currentLeft = parseFloat(emoji.style.left || 0);
+                emoji.style.left = `${currentLeft - BELT_SPEED}px`;
+                if (currentLeft < -50) {
+                    emoji.remove();
+                }
+            });
+        }
+
+        // [ AJÁNDÉK GENERÁLÁS ]
+        function spawnGift() {
+            const gift = document.createElement('div');
+            gift.classList.add('gift-box');
+            gift.style.left = `${gameContainer.clientWidth}px`; 
+            
+            // Kezdeti állapot
+            gift.dataset.step = 1; 
+            
+            // Véletlenszerű belső ajándék (lebegő)
+            const innerGiftImage = GIFT_IMAGES[Math.floor(Math.random() * GIFT_IMAGES.length)];
+            const innerGift = document.createElement('div');
+            innerGift.classList.add('gift-inner');
+            innerGift.innerHTML = `<img src="grafikak/${innerGiftImage}" alt="Ajándék">`;
+            gift.appendChild(innerGift);
+            
+            // Doboz kép
+            const boxImg = document.createElement('img');
+            boxImg.src = IMAGE_PATHS.alap;
+            gift.appendChild(boxImg);
+
+            gift.addEventListener('click', () => selectGift(gift));
+            conveyorBelt.appendChild(gift);
+        }
+        
+        // [ JÁTÉKVEZÉRLÉS ]
+        function selectGift(gift) {
+            if (selectedGift) {
+                selectedGift.classList.remove('selected');
+            }
+            if (gift.dataset.step !== '6') {
+                selectedGift = gift;
+                gift.classList.add('selected');
+            } else {
+                selectedGift = null;
+            }
+        }
+
+        function sendGift(gift) {
+            // Eltávolítjuk a dobozt
+            gift.remove();
+            
+            // Hozzáadunk egy boldog emojit
+            const sentEmoji = document.createElement('div');
+            sentEmoji.classList.add('sent-emoji');
+            sentEmoji.style.cssText = `
+                position: absolute;
+                bottom: 5px;
+                left: ${parseFloat(gift.style.left || gameContainer.clientWidth)}px;
+                font-size: 50px;
+                z-index: 15;
+            `;
+            sentEmoji.textContent = '🥳'; 
+            conveyorBelt.appendChild(sentEmoji);
+            
+            score += 10;
+        }
+
+        function updateGiftVisual(gift, newStep) {
+            const boxImg = gift.querySelector('img:not(.gift-inner img)');
+            const innerGift = gift.querySelector('.gift-inner');
+            
+            if (newStep === 2) { // 1. lépés: DOBOZ FESTÉS KÉSZ
+                // 💡 FESTÉS: A doboz képe átvált festettre. Lebegő ajándék megmarad.
+                boxImg.src = IMAGE_PATHS.festett; 
+                
+            } else if (newStep === 3) { // 2. lépés: AJÁNDÉK TÖLTÉS/CSOMAGOLÁS KÉSZ
+                // 💡 TÖLTÉS: A lebegő ajándék eltűnik.
+                if (innerGift) {
+                    innerGift.remove();
+                }
+
+            } else if (newStep === 4) { // 3. lépés: DOBOZ LEZÁRÁS KÉSZ
+                // 💡 LEZÁRÁS: Lezárjuk a dobozt.
+                boxImg.src = IMAGE_PATHS.lezart;
+
+            } else if (newStep === 5) { // 4. lépés: CSOMAGOLÁS ÉS MASNI KÉSZ
+                // 💡 CSOMAGOLÁS: Hozzáadjuk a masnit és a csomagolást.
+                boxImg.src = IMAGE_PATHS.csomagolt_masnis;
+
+            } else if (newStep === 6) { // 5. lépés: KÜLDÉS
+                sendGift(gift);
+                selectedGift = null;
+            }
+        }
+
+        function handleAction(action) {
+            if (!selectedGift || selectedGift.dataset.step === '6') return; 
+
+            const currentStep = parseInt(selectedGift.dataset.step);
+            const currentStepIndex = currentStep - 1;
+            const requiredAction = steps[currentStepIndex].action;
+            
+            if (action === requiredAction) {
+                // Helyes lépés
+                const nextStep = steps[currentStepIndex].nextStep;
+                updateGiftVisual(selectedGift, nextStep);
+                selectedGift.dataset.step = nextStep;
+                
+            } else {
+                // Helytelen lépés
+                score = Math.max(0, score - 5);
+                selectedGift.remove(); 
+                selectedGift = null;
+            }
+            updateScoreTime();
+        }
+
+        // [ UI FRISSÍTÉS ]
+        function updateScoreTime() {
+            scoreTime.textContent = `Pont: ${score} | Idő: ${timeLeft}s`;
+        }
+
+        // [ JÁTÉK LOOP ]
+        function gameLoop() {
+            moveGifts();
+            
+            if (timeLeft <= 0) {
+                endGame();
+            } else {
+                if (gameLoop.counter % 60 === 0) {
+                    timeLeft--;
+                    updateScoreTime();
+                }
+                gameLoop.counter++;
+            }
+        }
+        gameLoop.counter = 0; 
+
+        // [ START/END ]
+        function startGame() {
+            // UI reset
+            tutorialScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            resultScreen.style.display = 'none';
+
+            // Game state reset
+            score = 0;
+            timeLeft = 60;
+            updateScoreTime();
+            
+            conveyorBelt.innerHTML = ''; 
+            selectedGift = null;
+
+            // Start intervals
+            gameInterval = setInterval(gameLoop, 1000 / 60); 
+            giftSpawnInterval = setInterval(spawnGift, 3000); 
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(giftSpawnInterval);
+            
+            finalScoreDisplay.textContent = score;
+            resultScreen.style.display = 'flex';
+        }
+
+        // --- ESEMÉNYKEZELŐK ---
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+        
+        controls.querySelectorAll('.control-button').forEach(button => {
+            button.addEventListener('click', () => {
+                handleAction(button.dataset.action);
+            });
+        });
+    </script>
+</body>
+</html>
