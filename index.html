@@ -271,10 +271,10 @@
     
     // Adatstruktúra a fájlok nevével
     const gameFiles = {};
-    for (let i = 1; i <= 24; i++) {
-        // Ez az útvonal feltételezi, hogy a minigame mappák a naptár mappa felett vannak
-        gameFiles[i] = `../minigame${i}/minigame${i}.html`; 
-    }
+for (let i = 1; i <= 24; i++) {
+    // Ezzel a megoldással a böngésző a thebeanyx.github.io/minigameX/minigameX.html címen fog keresni.
+    gameFiles[i] = `/minigame${i}/minigame${i}.html`; 
+}
     
     // --- BEÁLLÍTÁS PANEL KEZELÉSE ---
     const settingsButton = document.getElementById('settingsButton');
@@ -507,4 +507,5 @@
 </script>
 </body>
 </html>
+
 
