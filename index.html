@@ -13,7 +13,41 @@
         .snowflake:nth-child(3n) { --size: 0.7vw; animation-duration: 20s; animation-delay: 5s; }
         .snowflake:nth-child(5n) { --size: 0.4vw; animation-duration: 12s; animation-delay: 3s; }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f8ff; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; min-height: 100vh; margin: 0; position: relative; z-index: 1; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f8ff; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column; 
+            padding: 20px; 
+            min-height: 100vh; 
+            margin: 0; 
+            position: relative; 
+            z-index: 1; 
+        }
+
+        /* [ FŐ NÉZET KONTÉNER ] */
+        #main-view {
+            display: flex; /* Kezdetben látható */
+            flex-direction: column; 
+            align-items: center;
+            z-index: 2;
+        }
+
+        /* [ JÁTÉK NÉZET KONTÉNER ] */
+        #game-view {
+            display: none; /* Kezdetben rejtett */
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            justify-content: center;
+            align-items: center;
+            z-index: 50; /* A naptár elemei fölött */
+            /* A minigame-1 beállítja a háttérszínt: background-color: #ADD8E6; */
+        }
         
         /* Statikus háttérkép stílusa */
         #dayBackgroundImage {
@@ -64,6 +98,7 @@
         h1 { color: #c0392b; margin-bottom: 20px; text-shadow: 2px 2px #fff; z-index: 2; }
         .calendar-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; max-width: 900px; padding: 20px; background-color: #1e8449; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 2; }
         
+        /* Fontos: a linkek mostantól div-ek, vagy a click event kezeli a navigációt */
         .advent-day-link {
             text-decoration: none; color: white; background-color: #e74c3c; border: 3px solid #f1c40f; border-radius: 8px;
             aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center;
@@ -157,6 +192,26 @@
         #musicToggleButton:hover {
             background-color: #c0392b;
         }
+        
+        /* Új gomb: Vissza a naptárhoz */
+        #backButton {
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 1001; 
+            display: none; 
+            background-color: #f1c40f; 
+            color: #c0392b; 
+            border: 3px solid #c0392b; 
+            padding: 10px 15px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #backButton:hover {
+            background-color: #ffe08a;
+        }
     </style>
 </head>
 <body>
@@ -170,13 +225,18 @@
     </audio>
 
     <button id="settingsButton">⚙️ Beállítások</button>
+    <button id="backButton">⬅️ Vissza a naptárhoz</button>
     
-    <div id="countdown"></div>
-    
-    <h1>2025 Adventi naptár</h1>
+    <div id="main-view"> 
+        <div id="countdown"></div>
+        <h1>2025 Adventi naptár</h1>
 
-    <div class="calendar-container" id="adventCalendar">
+        <div class="calendar-container" id="adventCalendar">
+        </div>
     </div>
+    
+    <div id="game-view"> 
+        </div>
 
     <div id="settingsPanel">
         <div class="panel-content">
@@ -202,15 +262,21 @@
     <script>
         const calendarContainer = document.getElementById('adventCalendar');
         const bgAudio = document.getElementById('bgAudio');
-        let isMusicPlayed = false; 
+        let isMusicPlayed = false;
 
-        // Adatstruktúra a fájlok nevével (a mappastruktúrát feltételezve)
+        // ÚJ ELEMEK
+        const mainView = document.getElementById('main-view');
+        const gameView = document.getElementById('game-view');
+        const backButton = document.getElementById('backButton');
+        
+        // Adatstruktúra a fájlok nevével
         const gameFiles = {};
         for (let i = 1; i <= 24; i++) {
+            // A megadott relatív útvonal (feltételezve, hogy a minigame almappában van)
             gameFiles[i] = `../minigame${i}/minigame${i}.html`;
         }
         
-        // --- BEÁLLÍTÁS PANEL KEZELÉSE ---
+        // --- BEÁLLÍTÁS PANEL KEZELÉSE (Nem változott) ---
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const closePanelButton = document.getElementById('closePanelButton');
@@ -229,7 +295,6 @@
         // Zene lejátszása / szüneteltetése
         musicToggleButton.addEventListener('click', () => {
             if (bgAudio.paused) {
-                // Play logic
                 bgAudio.play().then(() => {
                     musicToggleButton.textContent = "⏸️ Zene Szüneteltetése";
                     isMusicPlayed = true;
@@ -237,7 +302,6 @@
                     console.log("A zene lejátszása sikertelen. Lehet, hogy tiltva van az automatikus lejátszás.");
                 });
             } else {
-                // Pause logic
                 bgAudio.pause();
                 musicToggleButton.textContent = "▶️ Zene Indítása";
             }
@@ -253,7 +317,7 @@
         // Kezdeti hangerő beállítása (50%)
         bgAudio.volume = 0.5;
         
-        // --- VISSZASZÁMLÁLÓ LOGIKA ---
+        // --- VISSZASZÁMLÁLÓ LOGIKA (Nem változott) ---
         function startCountdown() {
             // Célidő: 2025. december 25. 00:00:00 (Karácsony kezdete)
             const christmasDate = new Date('December 25, 2025 00:00:00').getTime();
@@ -287,33 +351,124 @@
         }
         startCountdown(); 
         
+        // --- JÁTÉK BETÖLTŐ ÉS VISSZATÉRŐ LOGIKA (ÚJ) ---
+
+        /**
+         * Betölti egy minijáték tartalmát a game-view-ba
+         * @param {string} fileUrl - A minijáték HTML fájljának útvonala
+         */
+        function loadMinigame(fileUrl) {
+            // A betöltési hiba esetén el tudjuk távolítani az esetlegesen már betöltött tartalmat
+            gameView.innerHTML = ''; 
+            
+            fetch(fileUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP hiba: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // 1. HTML tartalom feldolgozása
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // 2. STÍLUSOK kinyerése és beillesztése (minijáték <style> tagjéből)
+                    const minigameStyleContent = doc.head.querySelector('style') ? doc.head.querySelector('style').textContent : '';
+                    if (minigameStyleContent) {
+                        const styleTag = document.createElement('style');
+                        styleTag.setAttribute('id', 'minigame-styles'); // ID a későbbi eltávolításhoz
+                        styleTag.textContent = minigameStyleContent;
+                        // A style tag-et a gameView-ba illesztjük, vagy a head-be. Maradjon a gameView-ban.
+                        gameView.appendChild(styleTag);
+                    }
+                    
+                    // 3. BODY tartalom kinyerése és beillesztése
+                    // A minijáték script tagjét is beillesztjük, de újra kell futtatni
+                    gameView.innerHTML += doc.body.innerHTML; 
+
+                    // 4. Kijelzők frissítése
+                    mainView.style.display = 'none';
+                    gameView.style.display = 'flex'; // Megjeleníti a játékot
+                    backButton.style.display = 'block';
+
+                    // 5. SCRIPTEK újra-futtatása
+                    // A böngésző biztonsági okokból nem futtatja automatikusan a fetch-elt HTML-ben lévő script tag-eket.
+                    // Kézzel kell klónozni és beilleszteni a futtatáshoz.
+                    const scripts = gameView.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        // Attribútumok másolása (pl. src)
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.textContent = oldScript.textContent;
+                        // Cseréljük ki a régi scriptet az újra a futtatáshoz
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                })
+                .catch(error => {
+                    console.error('Hiba a minijáték betöltésekor:', error);
+                    alert('Hiba történt a minijáték betöltésekor. Lehet, hogy az útvonal (gameFiles) hibás. Lásd a konzolt a részletekért.');
+                    backToCalendar(); // Visszaállás naptárra hiba esetén
+                });
+        }
+        
+        /** Visszatér a fő adventi naptár nézetre. */
+        function backToCalendar() {
+            // Tisztítsuk meg a játék nézetet
+            gameView.innerHTML = '';
+            
+            // Eltávolítjuk a dinamikusan betöltött stílust is
+            const minigameStyles = document.getElementById('minigame-styles');
+            if(minigameStyles) minigameStyles.remove();
+
+            // Vissza a naptárra
+            gameView.style.display = 'none';
+            backButton.style.display = 'none';
+            mainView.style.display = 'flex';
+        }
+
+        // Vissza gomb eseménykezelője
+        backButton.addEventListener('click', backToCalendar);
+
         // --- NAPTÁR ÉS HÁTTÉRLOGIKA ---
 
-        // Naptár Ablakok Generálása és Eseménykezelés
+        // Naptár Ablakok Generálása és Eseménykezelés (Módosítva)
         for (let i = 1; i <= 24; i++) {
+            // Megtartjuk az <a> tag-et, de letiltjuk a böngésző alapértelmezett navigációját
             const dayLink = document.createElement('a');
             dayLink.classList.add('advent-day-link');
             dayLink.textContent = i;
             
-            dayLink.href = gameFiles[i] || `placeholder_${i}.html`; 
-            dayLink.target = '_blank'; 
-
+            dayLink.dataset.day = i; // Hozzáadjuk a nap számát adat attribútumként
+            
+            // dayLink.href és dayLink.target eltávolítva/felülírva
+            
             if (i === 24) dayLink.classList.add('christmas-eve');
             
-            dayLink.addEventListener('click', () => {
+            dayLink.addEventListener('click', (event) => {
+                event.preventDefault(); // EZ A KULCS: megakadályozza a lap elhagyását
+                
                 dayLink.classList.add('open'); 
                 
+                const dayNumber = event.currentTarget.dataset.day;
+                const fileUrl = gameFiles[dayNumber];
+                
+                if (fileUrl) {
+                    loadMinigame(fileUrl);
+                }
+                
                 // Automatikus lejátszás tiltása miatt a zenét a felhasználónak kell elindítania a panelen
-                // Ha viszont már elindult, hagyjuk futni
                 if (bgAudio.paused && !isMusicPlayed) {
-                   // Nem csinálunk semmit itt, a felhasználó elindíthatja a panelen
+                    // Nem csinálunk semmit itt, a felhasználó elindíthatja a panelen
                 }
             });
 
             calendarContainer.appendChild(dayLink);
         }
 
-        // LOGIKA: Dinamikus háttérkép
+        // LOGIKA: Dinamikus háttérkép (Nem változott)
         function getSnowDay() {
             const today = new Date();
             const month = today.getMonth() + 1; 
@@ -333,18 +488,19 @@
                 currentDayNumber = 24;
             }
 
-            return currentDayNumber;ain
+            return currentDayNumber;
         }
 
         const snowDay = getSnowDay();
-        const snowImagePath = `snow_day${snowDay}.png`;
+        // Javítottam az útvonalat az Ön által megadott index.html alapján, bár a snippetben `snow_day${snowDay}.png` szerepelt:
+        const snowImagePath = `snow_day${snowDay}.png`; 
         const dayBg = document.getElementById('dayBackgroundImage');
         if (dayBg) {
             dayBg.style.backgroundImage = `url('${snowImagePath}')`;
         }
 
 
-        // Hópelyhek Generálása 
+        // Hópelyhek Generálása (Nem változott) 
         const snowContainer = document.getElementById('snowContainer');
         const numberOfSnowflakes = 100;
         for (let i = 0; i < numberOfSnowflakes; i++) {
@@ -364,8 +520,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
-
