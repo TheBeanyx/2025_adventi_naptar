@@ -79,13 +79,13 @@
         #musicToggleButton { padding: 10px; width: 100%; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
         #musicToggleButton:hover { background-color: #c0392b; }
         
-        /* [ BEJELENTKEZÉS KULCS GOMB STÍLUSA - ÚJ ] */
+        /* [ BEJELENTKEZÉS KULCS GOMB STÍLUSA - JAVÍTVA: Nincs háttér ] */
         #loginButton {
             position: fixed;
             bottom: 20px;
             left: 20px;
             font-size: 2.5em; 
-            background: #f1c40f; 
+            background: none; /* Átlátszó háttér */
             border: 3px solid #1e8449;
             border-radius: 50%;
             width: 60px;
@@ -97,13 +97,14 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             z-index: 1001; 
             transition: transform 0.2s;
+            color: #1e8449; /* A kulcs ikon színe zöld */
         }
 
         #loginButton:hover {
             transform: scale(1.1);
         }
 
-        /* [ BEJELENTKEZÉSI MODAL STÍLUSA - ÚJ ] */
+        /* [ BEJELENTKEZÉSI MODAL STÍLUSA - MEGLÉVŐ ] */
         .modal {
             display: none; 
             position: fixed;
@@ -131,7 +132,7 @@
         
         @keyframes animatetop {
             from {top: -300px; opacity: 0} 
-            to {top: 10%; opacity: 1} /* 10% felülről */
+            to {top: 10%; opacity: 1} 
         }
 
         .close-button {
@@ -247,14 +248,14 @@
         const bgAudio = document.getElementById('bgAudio');
         let isMusicPlayed = false; 
 
-        // Adatstruktúra a fájlok nevével (JAVÍTVA a 404-es hiba elkerülése érdekében!)
+        // Minijáték elérési útja (JAVÍTVA a 404-es hiba elkerülése érdekében!)
         const gameFiles = {};
         for (let i = 1; i <= 24; i++) {
-            // Ezzel az ABSZOLÚT útvonallal (/) a thebeanyx.github.io/minigameX/minigameX.html címen fog keresni.
+            // Abszolút útvonal használata a thebeanyx.github.io gyökeréből.
             gameFiles[i] = `/minigame${i}/minigame${i}.html`;
         }
         
-        // --- BEJELENTKEZÉS LOGIKA (ÚJ) ---
+        // --- BEJELENTKEZÉS LOGIKA ---
         const loginButton = document.getElementById('loginButton');
         const loginModal = document.getElementById('loginModal');
         const closeButton = loginModal.querySelector('.close-button');
@@ -264,17 +265,16 @@
         // Modal megnyitása
         loginButton.addEventListener('click', () => {
             loginModal.style.display = 'block';
-            loginMessage.textContent = ''; // Üzenet törlése
-            document.getElementById('username').value = ''; // Mezők törlése
+            loginMessage.textContent = ''; 
+            document.getElementById('username').value = ''; 
             document.getElementById('password').value = '';
         });
 
-        // Modal bezárása (X gomb)
+        // Modal bezárása (X gomb és kattintás kívül)
         closeButton.addEventListener('click', () => {
             loginModal.style.display = 'none';
         });
 
-        // Modal bezárása (ablak kattintás a modalon kívül)
         window.addEventListener('click', (event) => {
             if (event.target == loginModal) {
                 loginModal.style.display = 'none';
@@ -283,7 +283,7 @@
 
         // Bejelentkezés kezelése
         loginForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // Megakadályozza az oldal újratöltését
+            event.preventDefault(); 
             
             const usernameInput = document.getElementById('username').value;
             const passwordInput = document.getElementById('password').value;
@@ -295,7 +295,6 @@
             if (usernameInput === CORRECT_USERNAME && passwordInput === CORRECT_PASSWORD) {
                 loginMessage.textContent = 'Sikeres bejelentkezés! Üdvözöllek!';
                 loginMessage.style.color = 'green';
-                // Modal bezárása 2 másodperc múlva
                 setTimeout(() => {
                     loginModal.style.display = 'none';
                 }, 2000);
@@ -387,9 +386,6 @@
             dayLink.classList.add('advent-day-link');
             dayLink.textContent = i;
             
-            // Játék betöltési logika hiányában ez még átirányít,
-            // de a `gameFiles` már a helyes útvonalat tartalmazza.
-            // A korábbi átirányítás elkerülő logika (event.preventDefault()) hiányzik ebből a fájlból.
             dayLink.href = gameFiles[i] || `placeholder_${i}.html`; 
             dayLink.target = '_blank'; 
 
