@@ -13,95 +13,40 @@
         .snowflake:nth-child(3n) { --size: 0.7vw; animation-duration: 20s; animation-delay: 5s; }
         .snowflake:nth-child(5n) { --size: 0.4vw; animation-duration: 12s; animation-delay: 3s; }
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f0f8ff; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            flex-direction: column; 
-            padding: 20px; 
-            min-height: 100vh; 
-            margin: 0; 
-            position: relative; 
-            z-index: 1; 
-        }
-
-        /* [ FŐ NÉZET KONTÉNER ] */
-        #main-view {
-            display: flex; /* Kezdetben látható */
-            flex-direction: column; 
-            align-items: center;
-            z-index: 2;
-        }
-
-        /* [ JÁTÉK NÉZET KONTÉNER ] */
-        #game-view {
-            display: none; /* Kezdetben rejtett */
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            justify-content: center;
-            align-items: center;
-            z-index: 50; /* A naptár elemei fölött */
-            /* A minigame-1 beállítja a háttérszínt: background-color: #ADD8E6; */
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f8ff; display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; min-height: 100vh; margin: 0; position: relative; z-index: 1; }
         
         /* Statikus háttérkép stílusa */
         #dayBackgroundImage {
-            position: fixed; 
-            top: 0;
-            left: 0;
-            width: 100%; 
-            height: 100vh; 
-            z-index: 0; 
-            background-size: 100% 100%; 
-            background-position: center bottom;
-            background-repeat: no-repeat;
-            opacity: 0.5; 
-            transition: opacity 1s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 0; 
+            background-size: 100% 100%; background-position: center bottom;
+            background-repeat: no-repeat; opacity: 0.5; transition: opacity 1s;
         }
 
         /* [ VISSZASZÁMLÁLÓ STÍLUSOK ] */
         #countdown {
-            font-family: 'Arial Black', Gadget, sans-serif;
-            color: #fff;
+            font-family: 'Arial Black', Gadget, sans-serif; color: #fff;
             background: linear-gradient(145deg, #c0392b, #e74c3c); 
-            border: 4px solid #f1c40f; 
-            padding: 15px 30px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(241, 196, 15, 0.7); 
-            text-align: center;
-            z-index: 3; 
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            font-size: 1.5em;
+            border: 4px solid #f1c40f; padding: 15px 30px; border-radius: 10px;
+            margin-bottom: 20px; box-shadow: 0 0 20px rgba(241, 196, 15, 0.7); 
+            text-align: center; z-index: 3; display: flex;
+            justify-content: space-around; flex-wrap: wrap; font-size: 1.5em;
         }
 
-        .countdown-item {
-            margin: 5px 10px;
-            line-height: 1.2;
-        }
-
-        .countdown-item span {
-            display: block;
-            font-size: 0.5em;
-            font-weight: normal;
-            color: #f0f8ff;
-        }
+        .countdown-item { margin: 5px 10px; line-height: 1.2; }
+        .countdown-item span { display: block; font-size: 0.5em; font-weight: normal; color: #f0f8ff; }
 
         /* [ NAPTÁR ÉS CÍM STÍLUSOK ] */
         h1 { color: #c0392b; margin-bottom: 20px; text-shadow: 2px 2px #fff; z-index: 2; }
-        .calendar-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; max-width: 900px; padding: 20px; background-color: #1e8449; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 2; }
+        .calendar-container { 
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; 
+            max-width: 900px; padding: 20px; background-color: #1e8449; 
+            border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 2; 
+        }
         
-        /* Fontos: a linkek mostantól div-ek, vagy a click event kezeli a navigációt */
         .advent-day-link {
-            text-decoration: none; color: white; background-color: #e74c3c; border: 3px solid #f1c40f; border-radius: 8px;
-            aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center;
+            text-decoration: none; color: white; background-color: #e74c3c; 
+            border: 3px solid #f1c40f; border-radius: 8px; aspect-ratio: 1 / 1; 
+            display: flex; justify-content: center; align-items: center;
             font-size: 2em; font-weight: bold; cursor: pointer;
             transition: transform 0.2s, background-color 0.2s; user-select: none;
         }
@@ -111,106 +56,130 @@
         .advent-day-link.christmas-eve { background-color: #fff; color: #c0392b; border-color: #c0392b; }
         .advent-day-link.christmas-eve:hover { background-color: #f0f0f0; }
 
-        /* [ BEÁLLÍTÁSOK GOMB ÉS PANEL STÍLUSAI ] */
+        /* [ BEÁLLÍTÁSOK GOMB ÉS PANEL STÍLUSAI - MEGLÉVŐ ] */
         #settingsButton {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #1e8449; /* Zöld */
-            color: white;
-            border: 3px solid #f1c40f; /* Arany */
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            z-index: 1001; /* Hóesés felett */
+            position: fixed; top: 20px; right: 20px; background-color: #1e8449; 
+            color: white; border: 3px solid #f1c40f; padding: 10px 15px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 1001; 
             transition: background-color 0.2s;
         }
-        #settingsButton:hover {
-            background-color: #186a3b;
-        }
-        
-        /* Oldalsó panel (Side Panel) */
+        #settingsButton:hover { background-color: #186a3b; }
+        /* A többi settingsPanel stílus... */
         #settingsPanel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 300px; /* Panel szélessége */
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.95); /* Félig áttetsző fehér háttér */
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
-            z-index: 1002;
-            padding: 20px;
-            transform: translateX(100%); /* Eltünteti a képernyőn kívülre */
+            position: fixed; top: 0; right: 0; width: 300px; height: 100%;
+            background-color: rgba(255, 255, 255, 0.95); box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 1002; padding: 20px; transform: translateX(100%); 
             transition: transform 0.3s ease-in-out;
         }
-
-        #settingsPanel.open {
-            transform: translateX(0); /* Megnyitja a panelt */
+        #settingsPanel.open { transform: translateX(0); }
+        .panel-content h2 { color: #c0392b; border-bottom: 2px solid #f1c40f; padding-bottom: 10px; margin-top: 0; }
+        .setting-group { margin-bottom: 25px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .setting-group label { font-weight: bold; color: #1e8449; display: block; margin-bottom: 10px; }
+        #volumeSlider { width: 100%; -webkit-appearance: none; height: 10px; background: #f1c40f; border-radius: 5px; }
+        #musicToggleButton { padding: 10px; width: 100%; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
+        #musicToggleButton:hover { background-color: #c0392b; }
+        
+        /* [ BEJELENTKEZÉS KULCS GOMB STÍLUSA - ÚJ ] */
+        #loginButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 2.5em; 
+            background: #f1c40f; 
+            border: 3px solid #1e8449;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1001; 
+            transition: transform 0.2s;
         }
 
-        .panel-content h2 {
-            color: #c0392b;
-            border-bottom: 2px solid #f1c40f;
-            padding-bottom: 10px;
-            margin-top: 0;
+        #loginButton:hover {
+            transform: scale(1.1);
         }
 
-        .setting-group {
-            margin-bottom: 25px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .setting-group label {
-            font-weight: bold;
-            color: #1e8449;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        #volumeSlider {
+        /* [ BEJELENTKEZÉSI MODAL STÍLUSA - ÚJ ] */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 2000; 
+            left: 0;
+            top: 0;
             width: 100%;
-            -webkit-appearance: none;
-            height: 10px;
-            background: #f1c40f;
-            border-radius: 5px;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 25px;
+            border: 5px solid #1e8449;
+            width: 90%; 
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            animation-name: animatetop;
+            animation-duration: 0.4s
         }
         
-        /* Zene Lejátszás Gomb */
-        #musicToggleButton {
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0} 
+            to {top: 10%; opacity: 1} /* 10% felülről */
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        #loginForm label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            color: #c0392b;
+        }
+        
+        #loginForm input[type=text], #loginForm input[type=password] {
+            width: 95%;
             padding: 10px;
-            width: 100%;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1.1em;
+        }
+        
+        #loginForm button[type=submit] {
             background-color: #e74c3c;
             color: white;
+            padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #musicToggleButton:hover {
-            background-color: #c0392b;
+            width: 100%;
+            font-size: 1.1em;
+            margin-top: 10px;
         }
         
-        /* Új gomb: Vissza a naptárhoz */
-        #backButton {
-            position: fixed; 
-            top: 20px; 
-            left: 20px; 
-            z-index: 1001; 
-            display: none; 
-            background-color: #f1c40f; 
-            color: #c0392b; 
-            border: 3px solid #c0392b; 
-            padding: 10px 15px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        #backButton:hover {
-            background-color: #ffe08a;
+        #loginForm button[type=submit]:hover {
+            background-color: #c0392b;
         }
     </style>
 </head>
@@ -220,23 +189,37 @@
     <div class="snowflakes" id="snowContainer"></div>
     
     <audio id="bgAudio" loop preload="auto">
-        <source src="all_i_want_for_christmas.mp3" type="audio/mpeg">
+        <source src="music/all_i_want_for_christmas.mp3" type="audio/mpeg">
         A böngésző nem támogatja az audio elemet.
     </audio>
 
     <button id="settingsButton">⚙️ Beállítások</button>
-    <button id="backButton">⬅️ Vissza a naptárhoz</button>
     
-    <div id="main-view"> 
-        <div id="countdown"></div>
-        <h1>2025 Adventi naptár</h1>
+    <button id="loginButton" title="Bejelentkezés">🔑</button>
 
-        <div class="calendar-container" id="adventCalendar">
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 style="color: #1e8449;">Bejelentkezés</h2>
+            <form id="loginForm">
+                <label for="username">Felhasználónév:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Jelszó:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit">Belépés</button>
+            </form>
+            <p id="loginMessage" style="text-align: center; margin-top: 10px; font-weight: bold;"></p>
         </div>
     </div>
     
-    <div id="game-view"> 
-        </div>
+    <div id="countdown"></div>
+    
+    <h1>2025 Adventi naptár</h1>
+
+    <div class="calendar-container" id="adventCalendar">
+    </div>
 
     <div id="settingsPanel">
         <div class="panel-content">
@@ -260,253 +243,217 @@
 
 
     <script>
-    const calendarContainer = document.getElementById('adventCalendar');
-    const bgAudio = document.getElementById('bgAudio');
-    let isMusicPlayed = false;
+        const calendarContainer = document.getElementById('adventCalendar');
+        const bgAudio = document.getElementById('bgAudio');
+        let isMusicPlayed = false; 
 
-    // ÚJ ELEMEK (Ahogy a korábbi megoldásban szerepeltek)
-    const mainView = document.getElementById('main-view');
-    const gameView = document.getElementById('game-view');
-    const backButton = document.getElementById('backButton');
-    
-    // Adatstruktúra a fájlok nevével
-    const gameFiles = {};
-for (let i = 1; i <= 24; i++) {
-    // Ezzel a megoldással a böngésző a thebeanyx.github.io/minigameX/minigameX.html címen fog keresni.
-    gameFiles[i] = `minigame${i}.html`; 
-}
-    
-    // --- BEÁLLÍTÁS PANEL KEZELÉSE ---
-    const settingsButton = document.getElementById('settingsButton');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const closePanelButton = document.getElementById('closePanelButton');
-    const musicToggleButton = document.getElementById('musicToggleButton');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const volumeValueDisplay = document.getElementById('volumeValue');
-
-    settingsButton.addEventListener('click', () => {
-        settingsPanel.classList.add('open');
-    });
-    closePanelButton.addEventListener('click', () => {
-        settingsPanel.classList.remove('open');
-    });
-    
-    musicToggleButton.addEventListener('click', () => {
-        if (bgAudio.paused) {
-            bgAudio.play().then(() => {
-                musicToggleButton.textContent = "⏸️ Zene Szüneteltetése";
-                isMusicPlayed = true;
-            }).catch(error => {
-                console.log("A zene lejátszása sikertelen. Lehet, hogy tiltva van az automatikus lejátszás.");
-            });
-        } else {
-            bgAudio.pause();
-            musicToggleButton.textContent = "▶️ Zene Indítása";
+        // Adatstruktúra a fájlok nevével (JAVÍTVA a 404-es hiba elkerülése érdekében!)
+        const gameFiles = {};
+        for (let i = 1; i <= 24; i++) {
+            // Ezzel az ABSZOLÚT útvonallal (/) a thebeanyx.github.io/minigameX/minigameX.html címen fog keresni.
+            gameFiles[i] = `/minigame${i}/minigame${i}.html`;
         }
-    });
-    
-    volumeSlider.addEventListener('input', () => {
-        const volume = volumeSlider.value / 100;
-        bgAudio.volume = volume;
-        volumeValueDisplay.textContent = `${volumeSlider.value}%`;
-    });
-
-    bgAudio.volume = 0.5;
-    
-    // --- VISSZASZÁMLÁLÓ LOGIKA ---
-    function startCountdown() {
-        const christmasDate = new Date('December 25, 2025 00:00:00').getTime();
-        const countdownElement = document.getElementById('countdown');
-
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = christmasDate - now;
-
-            if (distance < 0) {
-                clearInterval(interval);
-                countdownElement.innerHTML = "🎉 BOLDOG KARÁCSONYT! 🎉";
-                return;
-            }
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            countdownElement.innerHTML = `
-                <div class="countdown-item">${days}<span>NAP</span></div>
-                <div class="countdown-item">${hours}<span>ÓRA</span></div>
-                <div class="countdown-item">${minutes}<span>PERC</span></div>
-                <div class="countdown-item">${seconds}<span>MÁSODPERC</span></div>
-            `;
-        }
-
-        updateCountdown();
-        const interval = setInterval(updateCountdown, 1000);
-    }
-    startCountdown(); 
-    
-    // --- JÁTÉK BETÖLTŐ ÉS VISSZATÉRŐ LOGIKA ---
-
-    function loadMinigame(fileUrl) {
-        // Tisztítás
-        gameView.innerHTML = ''; 
         
-        fetch(fileUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP hiba: ${response.status} - Ellenőrizd a gameFiles útvonalát: ${fileUrl}`);
-                }
-                return response.text();
-            })
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // 1. STÍLUSOK kinyerése és beillesztése (minijáték <style> tagjéből)
-                const minigameStyleContent = doc.head.querySelector('style') ? doc.head.querySelector('style').textContent : '';
-                if (minigameStyleContent) {
-                    const styleTag = document.createElement('style');
-                    styleTag.setAttribute('id', 'minigame-styles'); 
-                    styleTag.textContent = minigameStyleContent;
-                    document.head.appendChild(styleTag); // Helyezzük a head-be, hogy globálisan hasson
-                }
-                
-                // 2. BODY tartalom kinyerése és beillesztése
-                gameView.innerHTML = doc.body.innerHTML; 
-
-                // 3. Kijelzők frissítése
-                mainView.style.display = 'none';
-                gameView.style.display = 'flex'; 
-                backButton.style.display = 'block';
-
-                // 4. SCRIPTEK újra-futtatása
-                const scripts = gameView.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => {
-                        newScript.setAttribute(attr.name, attr.value);
-                    });
-                    newScript.textContent = oldScript.textContent;
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            })
-            .catch(error => {
-                console.error('Hiba a minijáték betöltésekor:', error);
-                alert(`Hiba történt a minijáték betöltésekor: ${error.message}`);
-                backToCalendar(); 
-            });
-    }
-    
-    /** Visszatér a fő adventi naptár nézetre. */
-    function backToCalendar() {
-        // Próbáljuk megállítani az esetlegesen futó játékintervallumokat/eseménykezelőket, ha a játék scriptje beállított erre egy globális funkciót (pl. a minigame1.html-ben nincsen)
-        // A gameView tartalmának törlésével (és a script node eltávolításával) a játék leáll.
-        gameView.innerHTML = '';
+        // --- BEJELENTKEZÉS LOGIKA (ÚJ) ---
+        const loginButton = document.getElementById('loginButton');
+        const loginModal = document.getElementById('loginModal');
+        const closeButton = loginModal.querySelector('.close-button');
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
         
-        // Eltávolítjuk a dinamikusan betöltött stílust is
-        const minigameStyles = document.getElementById('minigame-styles');
-        if(minigameStyles) minigameStyles.remove();
+        // Modal megnyitása
+        loginButton.addEventListener('click', () => {
+            loginModal.style.display = 'block';
+            loginMessage.textContent = ''; // Üzenet törlése
+            document.getElementById('username').value = ''; // Mezők törlése
+            document.getElementById('password').value = '';
+        });
 
-        // Vissza a naptárra
-        gameView.style.display = 'none';
-        backButton.style.display = 'none';
-        mainView.style.display = 'flex';
-    }
+        // Modal bezárása (X gomb)
+        closeButton.addEventListener('click', () => {
+            loginModal.style.display = 'none';
+        });
 
-    // Vissza gomb eseménykezelője
-    backButton.addEventListener('click', backToCalendar);
-
-    // --- NAPTÁR ÉS HÁTTÉRLOGIKA ---
-
-    // Naptár Ablakok Generálása és Eseménykezelés (JAVÍTOTT RÉSZ)
-    for (let i = 1; i <= 24; i++) {
-        const dayLink = document.createElement('a');
-        dayLink.classList.add('advent-day-link');
-        dayLink.textContent = i;
-        
-        dayLink.dataset.day = i; 
-        
-        // <<< FONTOS JAVÍTÁS: Mivel az <a> tag alapból navigál, adjuk neki egy # href-et. >>>
-        dayLink.href = "#"; // Megakadályozza a navigációt, és "linkként" viselkedik
-        
-        if (i === 24) dayLink.classList.add('christmas-eve');
-        
-        dayLink.addEventListener('click', (event) => {
-            // <<< EZ A LEGKULCSFONTOSSÁGÚBB SOR! Megakadályozza a böngésző alapértelmezett viselkedését (navigáció) >>>
-            event.preventDefault(); 
-            
-            dayLink.classList.add('open'); 
-            
-            const dayNumber = event.currentTarget.dataset.day;
-            const fileUrl = gameFiles[dayNumber];
-            
-            if (fileUrl) {
-                loadMinigame(fileUrl);
-            }
-            
-            if (bgAudio.paused && !isMusicPlayed) {
-                // Zene kezelés
+        // Modal bezárása (ablak kattintás a modalon kívül)
+        window.addEventListener('click', (event) => {
+            if (event.target == loginModal) {
+                loginModal.style.display = 'none';
             }
         });
 
-        calendarContainer.appendChild(dayLink);
-    }
+        // Bejelentkezés kezelése
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Megakadályozza az oldal újratöltését
+            
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            
+            // ELVÁRT ADATOK
+            const CORRECT_USERNAME = 'benedek_buzas13';
+            const CORRECT_PASSWORD = 'Benedek11';
 
-    // LOGIKA: Dinamikus háttérkép
-    function getSnowDay() {
-        const today = new Date();
-        const month = today.getMonth() + 1; 
-        const day = today.getDate();
+            if (usernameInput === CORRECT_USERNAME && passwordInput === CORRECT_PASSWORD) {
+                loginMessage.textContent = 'Sikeres bejelentkezés! Üdvözöllek!';
+                loginMessage.style.color = 'green';
+                // Modal bezárása 2 másodperc múlva
+                setTimeout(() => {
+                    loginModal.style.display = 'none';
+                }, 2000);
+            } else {
+                loginMessage.textContent = 'Hibás felhasználónév vagy jelszó.';
+                loginMessage.style.color = 'red';
+            }
+        });
         
-        let currentDayNumber;
+        // --- BEÁLLÍTÁS PANEL KEZELÉSE ---
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const closePanelButton = document.getElementById('closePanelButton');
+        const musicToggleButton = document.getElementById('musicToggleButton');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValueDisplay = document.getElementById('volumeValue');
 
-        if (month < 12) {
-            currentDayNumber = 1;
-        } else if (month === 12) {
-            if (day >= 1 && day <= 24) {
-                currentDayNumber = day;
+        // Panel megnyitása / bezárása
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+        });
+        closePanelButton.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+        });
+        
+        // Zene lejátszása / szüneteltetése
+        musicToggleButton.addEventListener('click', () => {
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => {
+                    musicToggleButton.textContent = "⏸️ Zene Szüneteltetése";
+                    isMusicPlayed = true;
+                }).catch(error => {
+                    console.log("A zene lejátszása sikertelen. Lehet, hogy tiltva van az automatikus lejátszás.");
+                });
+            } else {
+                bgAudio.pause();
+                musicToggleButton.textContent = "▶️ Zene Indítása";
+            }
+        });
+        
+        // Hangerő szabályozása
+        volumeSlider.addEventListener('input', () => {
+            const volume = volumeSlider.value / 100;
+            bgAudio.volume = volume;
+            volumeValueDisplay.textContent = `${volumeSlider.value}%`;
+        });
+
+        // Kezdeti hangerő beállítása (50%)
+        bgAudio.volume = 0.5;
+        
+        // --- VISSZASZÁMLÁLÓ LOGIKA ---
+        function startCountdown() {
+            const christmasDate = new Date('December 25, 2025 00:00:00').getTime();
+            const countdownElement = document.getElementById('countdown');
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = christmasDate - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    countdownElement.innerHTML = "🎉 BOLDOG KARÁCSONYT! 🎉";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownElement.innerHTML = `
+                    <div class="countdown-item">${days}<span>NAP</span></div>
+                    <div class="countdown-item">${hours}<span>ÓRA</span></div>
+                    <div class="countdown-item">${minutes}<span>PERC</span></div>
+                    <div class="countdown-item">${seconds}<span>MÁSODPERC</span></div>
+                `;
+            }
+
+            updateCountdown();
+            const interval = setInterval(updateCountdown, 1000);
+        }
+        startCountdown(); 
+        
+        // --- NAPTÁR ÉS HÁTTÉRLOGIKA ---
+
+        // Naptár Ablakok Generálása és Eseménykezelés
+        for (let i = 1; i <= 24; i++) {
+            const dayLink = document.createElement('a');
+            dayLink.classList.add('advent-day-link');
+            dayLink.textContent = i;
+            
+            // Játék betöltési logika hiányában ez még átirányít,
+            // de a `gameFiles` már a helyes útvonalat tartalmazza.
+            // A korábbi átirányítás elkerülő logika (event.preventDefault()) hiányzik ebből a fájlból.
+            dayLink.href = gameFiles[i] || `placeholder_${i}.html`; 
+            dayLink.target = '_blank'; 
+
+            if (i === 24) dayLink.classList.add('christmas-eve');
+            
+            dayLink.addEventListener('click', () => {
+                dayLink.classList.add('open'); 
+                if (bgAudio.paused && !isMusicPlayed) {
+                   // Nem csinálunk semmit itt, a felhasználó elindíthatja a panelen
+                }
+            });
+
+            calendarContainer.appendChild(dayLink);
+        }
+
+        // LOGIKA: Dinamikus háttérkép
+        function getSnowDay() {
+            const today = new Date();
+            const month = today.getMonth() + 1; 
+            const day = today.getDate();
+            
+            let currentDayNumber;
+
+            if (month < 12) {
+                currentDayNumber = 1;
+            } else if (month === 12) {
+                if (day >= 1 && day <= 24) {
+                    currentDayNumber = day;
+                } else {
+                    currentDayNumber = 24;
+                }
             } else {
                 currentDayNumber = 24;
             }
-        } else {
-            currentDayNumber = 24;
+
+            return currentDayNumber;
         }
 
-        return currentDayNumber;
-    }
-
-    const snowDay = getSnowDay();
-    // Feltételezve, hogy a képek a `snow_dayX.png` néven a naptár mappa gyökerében vannak,
-    // de ha van külön `snow/` almappa, akkor: const snowImagePath = `snow/snow_day${snowDay}.png`; 
-    const snowImagePath = `snow_day${snowDay}.png`; 
-    const dayBg = document.getElementById('dayBackgroundImage');
-    if (dayBg) {
-        dayBg.style.backgroundImage = `url('${snowImagePath}')`;
-    }
-
-
-    // Hópelyhek Generálása 
-    const snowContainer = document.getElementById('snowContainer');
-    const numberOfSnowflakes = 100;
-    for (let i = 0; i < numberOfSnowflakes; i++) {
-        const flake = document.createElement('div');
-        flake.classList.add('snowflake');
-        const x = Math.random() * 100;
-        const delay = Math.random() * 20;
-        const duration = Math.random() * 10 + 10;
-        const size = Math.random() * 0.5 + 0.2; 
-        flake.style.left = `${x}vw`;
-        flake.style.animationDelay = `${delay}s`;
-        flake.style.animationDuration = `${duration}s`;
-        flake.style.setProperty('--size', `${size}vw`);
-        if (snowContainer) {
-            snowContainer.appendChild(flake);
+        const snowDay = getSnowDay();
+        const snowImagePath = `snow/snow_day${snowDay}.png`;
+        const dayBg = document.getElementById('dayBackgroundImage');
+        if (dayBg) {
+            dayBg.style.backgroundImage = `url('${snowImagePath}')`;
         }
-    }
-</script>
+
+
+        // Hópelyhek Generálása 
+        const snowContainer = document.getElementById('snowContainer');
+        const numberOfSnowflakes = 100;
+        for (let i = 0; i < numberOfSnowflakes; i++) {
+            const flake = document.createElement('div');
+            flake.classList.add('snowflake');
+            const x = Math.random() * 100;
+            const delay = Math.random() * 20;
+            const duration = Math.random() * 10 + 10;
+            const size = Math.random() * 0.5 + 0.2; 
+            flake.style.left = `${x}vw`;
+            flake.style.animationDelay = `${delay}s`;
+            flake.style.animationDuration = `${duration}s`;
+            flake.style.setProperty('--size', `${size}vw`);
+            if (snowContainer) {
+                snowContainer.appendChild(flake);
+            }
+        }
+    </script>
 </body>
 </html>
-
-
-
