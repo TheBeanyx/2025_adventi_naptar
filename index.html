@@ -110,6 +110,110 @@
         #volumeSlider { width: 100%; -webkit-appearance: none; height: 10px; background: #f1c40f; border-radius: 5px; }
         #musicToggleButton { padding: 10px; width: 100%; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
         #musicToggleButton:hover { background-color: #c0392b; }
+
+        /* [ BEJELENTKEZÉS KULCS GOMB STÍLUSA - ÚJ, Nincs háttér ] */
+        #loginButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 2.5em; 
+            background: none; /* Átlátszó háttér */
+            border: 3px solid #1e8449;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1001; 
+            transition: transform 0.2s;
+            color: #1e8449; /* A kulcs ikon színe zöld */
+        }
+
+        #loginButton:hover {
+            transform: scale(1.1);
+        }
+
+        /* [ BEJELENTKEZÉSI MODAL STÍLUSA - ÚJ ] */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 25px;
+            border: 5px solid #1e8449;
+            width: 90%; 
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0} 
+            to {top: 10%; opacity: 1} 
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #loginForm label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            color: #c0392b;
+        }
+
+        #loginForm input[type=text], #loginForm input[type=password] {
+            width: 95%;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1.1em;
+        }
+
+        #loginForm button[type=submit] {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        #loginForm button[type=submit]:hover {
+            background-color: #c0392b;
+        }
     </style>
 </head>
 <body>
@@ -123,6 +227,25 @@
     </audio>
 
     <button id="settingsButton">⚙️ Beállítások</button>
+
+    <button id="loginButton" title="Bejelentkezés">🔑</button>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 style="color: #1e8449;">Bejelentkezés</h2>
+            <form id="loginForm">
+                <label for="username">Felhasználónév:</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Jelszó:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit">Belépés</button>
+            </form>
+            <p id="loginMessage" style="text-align: center; margin-top: 10px; font-weight: bold;"></p>
+        </div>
+    </div>
     
     <button id="backButton">← Vissza a Naptárra</button>
 
@@ -136,7 +259,7 @@
     </div>
     
     <div id="game-view" style="display: none;">
-        </div>
+    </div>
 
 
     <div id="settingsPanel">
@@ -170,11 +293,70 @@
         const gameView = document.getElementById('game-view');
         const backButton = document.getElementById('backButton');
         
-        // Adatstruktúra a fájlok nevével (JAVÍTVA: Abszolút útvonal a 404-es hiba miatt)
+        // Adatstruktúra a fájlok nevével (EREDETI ÚTVONAL)
         const gameFiles = {};
         for (let i = 1; i <= 24; i++) {
             // A thebeanyx.github.io gyökeréből keresi a minigame mappákat
             gameFiles[i] = `minigame${i}.html`; 
+        }
+
+        // --- BEJELENTKEZÉS LOGIKA (ÚJ) ---
+        const loginButton = document.getElementById('loginButton');
+        const loginModal = document.getElementById('loginModal');
+        const closeButton = loginModal ? loginModal.querySelector('.close-button') : null;
+        const loginForm = document.getElementById('loginForm');
+        const loginMessage = document.getElementById('loginMessage');
+
+        if (loginButton && loginModal && loginForm) {
+            // Modal megnyitása
+            loginButton.addEventListener('click', () => {
+                loginModal.style.display = 'block';
+                if (loginMessage) loginMessage.textContent = ''; // Üzenet törlése
+                document.getElementById('username').value = ''; // Mezők törlése
+                document.getElementById('password').value = '';
+            });
+
+            // Modal bezárása (X gomb)
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    loginModal.style.display = 'none';
+                });
+            }
+
+            // Modal bezárása (ablak kattintás a modalon kívül)
+            window.addEventListener('click', (event) => {
+                if (event.target == loginModal) {
+                    loginModal.style.display = 'none';
+                }
+            });
+
+            // Bejelentkezés kezelése
+            loginForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // Megakadályozza az oldal újratöltését
+                
+                const usernameInput = document.getElementById('username').value;
+                const passwordInput = document.getElementById('password').value;
+                
+                // ELVÁRT ADATOK
+                const CORRECT_USERNAME = 'benedek_buzas13';
+                const CORRECT_PASSWORD = 'Benedek11';
+
+                if (usernameInput === CORRECT_USERNAME && passwordInput === CORRECT_PASSWORD) {
+                    if (loginMessage) {
+                        loginMessage.textContent = 'Sikeres bejelentkezés! Üdvözöllek!';
+                        loginMessage.style.color = 'green';
+                    }
+                    // Modal bezárása 2 másodperc múlva
+                    setTimeout(() => {
+                        loginModal.style.display = 'none';
+                    }, 2000);
+                } else {
+                    if (loginMessage) {
+                        loginMessage.textContent = 'Hibás felhasználónév vagy jelszó.';
+                        loginMessage.style.color = 'red';
+                    }
+                }
+            });
         }
         
         // --- BEÁLLÍTÁS PANEL KEZELÉSE ---
@@ -247,7 +429,7 @@
         }
         startCountdown(); 
         
-        // --- JÁTÉK BETÖLTŐ ÉS VISSZATÉRŐ LOGIKA (VISSZAÁLLÍTVA) ---
+        // --- JÁTÉK BETÖLTŐ ÉS VISSZATÉRŐ LOGIKA ---
 
         function loadMinigame(fileUrl) {
             // Tisztítás
@@ -319,7 +501,7 @@
 
         // --- NAPTÁR ÉS HÁTTÉRLOGIKA ---
 
-        // Naptár Ablakok Generálása és Eseménykezelés (VISSZAÁLLÍTVA)
+        // Naptár Ablakok Generálása és Eseménykezelés
         for (let i = 1; i <= 24; i++) {
             const dayLink = document.createElement('a');
             dayLink.classList.add('advent-day-link');
@@ -377,7 +559,7 @@
         }
 
         const snowDay = getSnowDay();
-        const snowImagePath = `snow_day${snowDay}.png`; 
+        const snowImagePath = `snow/snow_day${snowDay}.png`; 
         const dayBg = document.getElementById('dayBackgroundImage');
         if (dayBg) {
             dayBg.style.backgroundImage = `url('${snowImagePath}')`;
@@ -405,4 +587,3 @@
     </script>
 </body>
 </html>
-
